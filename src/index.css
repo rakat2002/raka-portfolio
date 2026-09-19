@@ -1,1 +1,69 @@
 @import "tailwindcss";
+
+/* 1. THE PALETTE: plain CSS variables, named as in your spec */
+:root {
+  --bg-primary: #120e1a;
+  --bg-secondary: #1a1526;
+  --bg-editor: #201a2e;
+  --bg-terminal: #0f0b16;
+  --border-subtle: #2d2540;
+  --text-primary: #ece6f5;
+  --text-secondary: #b3a8c9;
+  --text-muted: #8f84a8;
+  --accent-primary: #f472b6;   /* pink */
+  --accent-secondary: #a78bfa; /* violet */
+}
+
+/* 2. TAILWIND NAMES: connect the variables to short class names */
+@theme inline {
+  --color-surface: var(--bg-primary);
+  --color-panel: var(--bg-secondary);
+  --color-editor: var(--bg-editor);
+  --color-terminal: var(--bg-terminal);
+  --color-line: var(--border-subtle);
+  --color-ink: var(--text-primary);
+  --color-ink-dim: var(--text-secondary);
+  --color-ink-faint: var(--text-muted);
+  --color-accent: var(--accent-primary);
+  --color-accent-2: var(--accent-secondary);
+
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, Consolas, monospace;
+}
+
+/* 3. GLOBAL DEFAULTS */
+@layer base {
+  html, body, #root { height: 100%; }
+
+  body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--accent-primary) 30%, transparent);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-subtle) transparent;
+  }
+}
+
+/* 4. ACCESSIBILITY: calm animations for people who ask for it */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
