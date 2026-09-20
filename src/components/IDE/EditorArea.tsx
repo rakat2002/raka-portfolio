@@ -1,5 +1,7 @@
 import { filesByPath } from '../../data/portfolioFiles'
+import type { Cursor } from '../../hooks/useCursors'
 import type { EditorTab } from '../../hooks/useEditorTabs'
+import Breadcrumbs from './Breadcrumbs'
 import CodeView from './CodeView'
 import EditorTabs from './EditorTabs'
 
@@ -33,17 +35,21 @@ function EmptyEditor() {
 interface EditorAreaProps {
   tabs: EditorTab[]
   activePath: string | null
+  cursor: Cursor
   onSelectTab: (path: string) => void
   onCloseTab: (path: string) => void
   onPinTab: (path: string) => void
+  onCursorChange: (cursor: Cursor) => void
 }
 
 export default function EditorArea({
   tabs,
   activePath,
+  cursor,
   onSelectTab,
   onCloseTab,
   onPinTab,
+  onCursorChange,
 }: EditorAreaProps) {
   const file = activePath ? filesByPath.get(activePath) : undefined
 
@@ -58,7 +64,19 @@ export default function EditorArea({
           onPin={onPinTab}
         />
       )}
-      {file ? <CodeView key={file.path} file={file} /> : <EmptyEditor />}
+      {file ? (
+        <>
+          <Breadcrumbs file={file} />
+          <CodeView
+            key={file.path}
+            file={file}
+            cursor={cursor}
+            onCursorChange={onCursorChange}
+          />
+        </>
+      ) : (
+        <EmptyEditor />
+      )}
     </main>
   )
 }
