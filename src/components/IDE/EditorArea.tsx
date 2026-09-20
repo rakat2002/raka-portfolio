@@ -1,11 +1,18 @@
+import { filesByPath } from '../../data/portfolioFiles'
+import type { Cursor } from '../../hooks/useCursors'
+import type { EditorTab } from '../../hooks/useEditorTabs'
+import Breadcrumbs from './Breadcrumbs'
+import CodeView from './CodeView'
+import EditorTabs from './EditorTabs'
+
 const SHORTCUTS = [
   { action: 'Toggle Sidebar', keys: 'Ctrl+B' },
   { action: 'Toggle Terminal', keys: 'Ctrl+`' },
 ]
 
-export default function EditorArea() {
+function EmptyEditor() {
   return (
-    <main className="grid min-h-0 flex-1 place-items-center bg-editor">
+    <div className="grid min-h-0 flex-1 place-items-center">
       <div className="w-72">
         <p className="mb-4 text-center font-mono text-sm tracking-widest text-ink-faint">
           RAKA.DEV
@@ -21,6 +28,55 @@ export default function EditorArea() {
           ))}
         </ul>
       </div>
+    </div>
+  )
+}
+
+interface EditorAreaProps {
+  tabs: EditorTab[]
+  activePath: string | null
+  cursor: Cursor
+  onSelectTab: (path: string) => void
+  onCloseTab: (path: string) => void
+  onPinTab: (path: string) => void
+  onCursorChange: (cursor: Cursor) => void
+}
+
+export default function EditorArea({
+  tabs,
+  activePath,
+  cursor,
+  onSelectTab,
+  onCloseTab,
+  onPinTab,
+  onCursorChange,
+}: EditorAreaProps) {
+  const file = activePath ? filesByPath.get(activePath) : undefined
+
+  return (
+    <main className="flex min-h-0 min-w-0 flex-1 flex-col bg-editor">
+      {tabs.length > 0 && (
+        <EditorTabs
+          tabs={tabs}
+          activePath={activePath}
+          onSelect={onSelectTab}
+          onClose={onCloseTab}
+          onPin={onPinTab}
+        />
+      )}
+      {file ? (
+        <>
+          <Breadcrumbs file={file} />
+          <CodeView
+            key={file.path}
+            file={file}
+            cursor={cursor}
+            onCursorChange={onCursorChange}
+          />
+        </>
+      ) : (
+        <EmptyEditor />
+      )}
     </main>
   )
 }
