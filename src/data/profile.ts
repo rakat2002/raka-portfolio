@@ -48,15 +48,14 @@ export interface Profile {
 // Anything that starts with "TODO:" is a placeholder for you to fill in.
 export const profile: Profile = {
   name: "Rakat E Jannat Raka", // TODO: confirm the spelling you want shown
-  role: "Undergraduate Student of CS", // TODO: your role or title
+  role: "Undergraduate Student of CS, Brac University", // TODO: your role or title
   location: "Bangladesh",
-  email: "TODO: your-email@example.com",
+  email: "rjannat1311@gmail.com , rakat.ejannat.raka@g.bracu.ac.bd",
   github: "https://github.com/rakat2002",
   linkedin: "TODO: https://linkedin.com/in/your-username",
   photo: "/profile.jpg",
   interests: [
-    "Software Development",
-    "Generative AI",
+    "Software Engineering",
     "Problem Solving",
     "Digital Art",
   ],
