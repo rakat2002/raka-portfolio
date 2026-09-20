@@ -1,1 +1,136 @@
 @import "tailwindcss";
+
+:root {
+  /* surfaces (from your VS Code theme) */
+  --bg-primary: #1d0116;
+  --bg-secondary: #29011f;
+  --bg-titlebar: #33002f;
+  --bg-activitybar: #33002f;
+  --bg-sidebar: #1d0116;
+  --bg-editor: #2c0d1a;
+  --bg-tabs: #29011f;
+  --bg-tab-active: #b50589;
+  --bg-tab-inactive: #4e2d49;
+  --bg-terminal: #1d0116;
+  --bg-statusbar: #480242;
+  --bg-breadcrumb: #480242;
+  --bg-selection: #660058;
+  --bg-highlight: #52003e;
+  --bg-list-hover: #7e0369;
+  --bg-list-active: #b50589;
+  --bg-current-line: #612d45;
+
+  /* borders */
+  --border-subtle: #131415;
+  --border-edge: #b50589;
+
+  /* text */
+  --text-primary: #f8f8f8;
+  --text-secondary: #ffcccc;
+  --text-muted: #cc7db2;
+  --text-titlebar: #ffffff;
+  --text-statusbar: #ffffff;
+
+  /* accents */
+  --accent-primary: #ff00aa;
+  --accent-secondary: #ff8ae2;
+  --caret: #ff419a;
+  --gutter: #ff4ab482;
+
+  /* code colors (used by the editor in Step 4) */
+  --syntax-default: #f8f8f8;
+  --syntax-comment: #956585;
+  --syntax-constant: #ffb452;
+  --syntax-keyword: #ff419a;
+  --syntax-storage: #ff52a8;
+  --syntax-function: #ff59c8;
+  --syntax-string: #e8ffe5;
+  --syntax-support: #ff66e0;
+  --syntax-variable: #88ff88;
+  --syntax-tag: #ff00aa;
+  --syntax-attr: #ebe71f;
+}
+
+@theme inline {
+  --color-surface: var(--bg-primary);
+  --color-panel: var(--bg-secondary);
+  --color-titlebar: var(--bg-titlebar);
+  --color-activitybar: var(--bg-activitybar);
+  --color-sidebar: var(--bg-sidebar);
+  --color-editor: var(--bg-editor);
+  --color-tabs: var(--bg-tabs);
+  --color-tab-active: var(--bg-tab-active);
+  --color-tab-inactive: var(--bg-tab-inactive);
+  --color-terminal: var(--bg-terminal);
+  --color-statusbar: var(--bg-statusbar);
+  --color-breadcrumb: var(--bg-breadcrumb);
+  --color-selection: var(--bg-selection);
+  --color-highlight: var(--bg-highlight);
+  --color-list-hover: var(--bg-list-hover);
+  --color-list-active: var(--bg-list-active);
+  --color-current-line: var(--bg-current-line);
+
+  --color-line: var(--border-subtle);
+  --color-edge: var(--border-edge);
+
+  --color-ink: var(--text-primary);
+  --color-ink-dim: var(--text-secondary);
+  --color-ink-faint: var(--text-muted);
+  --color-titlebar-ink: var(--text-titlebar);
+  --color-statusbar-ink: var(--text-statusbar);
+
+  --color-accent: var(--accent-primary);
+  --color-accent-2: var(--accent-secondary);
+  --color-caret: var(--caret);
+  --color-gutter: var(--gutter);
+
+  --color-syn-default: var(--syntax-default);
+  --color-syn-comment: var(--syntax-comment);
+  --color-syn-constant: var(--syntax-constant);
+  --color-syn-keyword: var(--syntax-keyword);
+  --color-syn-storage: var(--syntax-storage);
+  --color-syn-function: var(--syntax-function);
+  --color-syn-string: var(--syntax-string);
+  --color-syn-support: var(--syntax-support);
+  --color-syn-variable: var(--syntax-variable);
+  --color-syn-tag: var(--syntax-tag);
+  --color-syn-attr: var(--syntax-attr);
+
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, Consolas, monospace;
+}
+
+@layer base {
+  html, body, #root { height: 100%; }
+
+  body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: var(--bg-current-line);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent-secondary);
+    outline-offset: 2px;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #79797966 transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
