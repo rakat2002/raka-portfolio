@@ -352,3 +352,27 @@ export function runCommand(input: string): CommandResult {
   }
   return command.run(args)
 }
+// ---------- autocomplete ----------
+
+const SUGGESTION_LIMIT = 12
+
+// Everything we are willing to suggest, most useful first.
+const SUGGESTIONS: string[] = [
+  ...COMMANDS.map((command) => command.name),
+  'git status',
+  `sudo hire ${PROMPT_USER}`,
+  ...fileTree.filter((node) => node.kind === 'folder').map((folder) => `ls ${folder.path}`),
+  ...[...filesByPath.keys()].map((path) => `cat ${path}`),
+  'print("Hello")',
+  'console.log("Hello")',
+]
+
+export function getSuggestions(input: string): string[] {
+  const typed = input.trimStart().toLowerCase()
+  if (typed === '') return []
+
+  return SUGGESTIONS.filter((suggestion) => {
+    const candidate = suggestion.toLowerCase()
+    return candidate.startsWith(typed) && candidate !== typed
+  }).slice(0, SUGGESTION_LIMIT)
+}

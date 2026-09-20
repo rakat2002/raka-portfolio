@@ -1,6 +1,6 @@
-import { useEffect, useRef, type KeyboardEvent } from 'react'
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import type { TerminalState } from '../../hooks/useTerminal'
-import { PROMPT_HOST, PROMPT_USER, type LineTone } from '../../lib/terminal'
+import { PROMPT_HOST, PROMPT_USER, getSuggestions, type LineTone } from '../../lib/terminal'
 
 const TONE_CLASS: Record<LineTone, string> = {
   plain: 'text-ink-dim',
@@ -32,24 +32,81 @@ export default function Terminal({ terminal }: TerminalProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Always show the newest output.
+  // The menu opens only when the person types, never when history fills the line.
+  const [open, setOpen] = useState(false)
+  const [active, setActive] = useState(-1) // -1 means nothing is highlighted yet
+
+  const suggestions = open ? getSuggestions(input) : []
+  const listVisible = suggestions.length > 0
+  const typedLength = input.trimStart().length
+
+  // Always show the newest output, and keep the menu in view when it opens.
   useEffect(() => {
     const element = scrollRef.current
     if (element) element.scrollTop = element.scrollHeight
-  }, [entries])
+  }, [entries, suggestions.length])
+
+  // Keep the highlighted row visible when the menu is longer than its box.
+  useEffect(() => {
+    if (active < 0) return
+    document.getElementById(`terminal-suggestion-${active}`)?.scrollIntoView({ block: 'nearest' })
+  }, [active])
+
+  const closeSuggestions = () => {
+    setOpen(false)
+    setActive(-1)
+  }
+
+  const accept = (suggestion: string) => {
+    setInput(suggestion)
+    closeSuggestions()
+    inputRef.current?.focus()
+  }
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (listVisible) {
+      if (event.key === 'ArrowDown') {
+        event.preventDefault()
+        setActive((index) => (index + 1) % suggestions.length)
+        return
+      }
+      if (event.key === 'ArrowUp') {
+        event.preventDefault()
+        setActive((index) => (index <= 0 ? suggestions.length - 1 : index - 1))
+        return
+      }
+      if (event.key === 'Tab') {
+        event.preventDefault()
+        accept(suggestions[active >= 0 ? active : 0])
+        return
+      }
+      if (event.key === 'Enter' && active >= 0) {
+        event.preventDefault()
+        accept(suggestions[active])
+        return
+      }
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        closeSuggestions()
+        return
+      }
+    }
+
     if (event.key === 'Enter') {
       event.preventDefault()
+      closeSuggestions()
       submit()
     } else if (event.key === 'ArrowUp') {
       event.preventDefault()
+      closeSuggestions()
       historyUp()
     } else if (event.key === 'ArrowDown') {
       event.preventDefault()
+      closeSuggestions()
       historyDown()
     } else if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'l') {
       event.preventDefault()
+      closeSuggestions()
       clear()
     }
   }
@@ -93,9 +150,21 @@ export default function Terminal({ terminal }: TerminalProps) {
         <input
           ref={inputRef}
           value={input}
-          onChange={(event) => setInput(event.target.value)}
+          onChange={(event) => {
+            setInput(event.target.value)
+            setOpen(true)
+            setActive(-1)
+          }}
           onKeyDown={handleKeyDown}
+          onBlur={closeSuggestions}
+          role="combobox"
           aria-label="Terminal input"
+          aria-autocomplete="list"
+          aria-expanded={listVisible}
+          aria-controls={listVisible ? 'terminal-suggestions' : undefined}
+          aria-activedescendant={
+            listVisible && active >= 0 ? `terminal-suggestion-${active}` : undefined
+          }
           autoComplete="off"
           autoCapitalize="off"
           autoCorrect="off"
@@ -103,6 +172,44 @@ export default function Terminal({ terminal }: TerminalProps) {
           className="min-w-0 flex-1 bg-transparent text-ink caret-caret outline-none"
         />
       </div>
+
+      {listVisible && (
+        <div className="mt-1 max-w-md overflow-hidden rounded-md border border-edge/40 bg-panel shadow-lg shadow-black/30">
+          <ul
+            id="terminal-suggestions"
+            role="listbox"
+            aria-label="Suggestions"
+            className="max-h-44 overflow-y-auto py-1"
+          >
+            {suggestions.map((suggestion, index) => {
+              const selected = index === active
+              return (
+                <li
+                  key={suggestion}
+                  id={`terminal-suggestion-${index}`}
+                  role="option"
+                  aria-selected={selected}
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => accept(suggestion)}
+                  className={`cursor-pointer whitespace-pre px-3 leading-6 ${
+                    selected
+                      ? 'bg-list-active text-white'
+                      : 'text-ink-faint hover:bg-list-hover hover:text-white'
+                  }`}
+                >
+                  <span className={selected ? 'text-white' : 'text-ink'}>
+                    {suggestion.slice(0, typedLength)}
+                  </span>
+                  <span>{suggestion.slice(typedLength)}</span>
+                </li>
+              )
+            })}
+          </ul>
+          <p className="border-t border-line px-3 py-1 text-[11px] text-ink-faint">
+            ↑↓ choose · Tab complete · Esc close
+          </p>
+        </div>
+      )}
     </div>
   )
 }
