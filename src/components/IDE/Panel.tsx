@@ -1,16 +1,26 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
+import type { TerminalState } from '../../hooks/useTerminal'
 import IconButton from '../UI/IconButton'
+import Terminal from './Terminal'
 
 const TABS = ['Problems', 'Output', 'Debug Console', 'Terminal', 'Ports'] as const
 type PanelTab = (typeof TABS)[number]
 
+const EMPTY_MESSAGES: Record<Exclude<PanelTab, 'Terminal'>, string> = {
+  Problems: 'No problems have been detected in the workspace.',
+  Output: 'Nothing to show yet.',
+  'Debug Console': 'No active debugging session.',
+  Ports: 'No forwarded ports.',
+}
+
 interface PanelProps {
   height: number
+  terminal: TerminalState
   onClose: () => void
 }
 
-export default function Panel({ height, onClose }: PanelProps) {
+export default function Panel({ height, terminal, onClose }: PanelProps) {
   const [active, setActive] = useState<PanelTab>('Terminal')
 
   return (
@@ -36,8 +46,13 @@ export default function Panel({ height, onClose }: PanelProps) {
           <X size={16} />
         </IconButton>
       </div>
-      <div role="tabpanel" className="flex-1 overflow-auto p-3 font-mono text-sm text-ink-faint">
-        {active} view arrives in a later step.
+
+      <div role="tabpanel" className="flex min-h-0 flex-1 flex-col">
+        {active === 'Terminal' ? (
+          <Terminal terminal={terminal} />
+        ) : (
+          <p className="p-3 font-mono text-sm text-ink-faint">{EMPTY_MESSAGES[active]}</p>
+        )}
       </div>
     </section>
   )
