@@ -1,11 +1,16 @@
 import { fileTree, filesByPath } from '../data/portfolioFiles'
 import { profile } from '../data/profile'
+import { CV_PATH } from './browser'
 
 export type LineTone = 'plain' | 'success' | 'info' | 'error' | 'muted'
 
 export interface OutputLine {
   text: string
   tone?: LineTone
+  /** Milliseconds to wait (after the previous line) before this line appears. */
+  delay?: number
+  /** Adds a link at the end of the line. */
+  link?: { label: string; href: string }
 }
 
 export interface CommandResult {
@@ -22,6 +27,7 @@ interface Command {
 export const PROMPT_USER = profile.name.split(' ')[0].toLowerCase()
 export const PROMPT_HOST = 'workspace'
 const HOME_PATH = `/home/${PROMPT_USER}/portfolio`
+const DEV_URL = 'http://localhost:5173/'
 
 export const WELCOME_LINES: OutputLine[] = [
   { text: `${PROMPT_USER}-shell 1.0 — type 'help' to see available commands.`, tone: 'muted' },
@@ -30,6 +36,7 @@ export const WELCOME_LINES: OutputLine[] = [
 // ---------- small helpers ----------
 
 const line = (text: string, tone?: LineTone): OutputLine => ({ text, tone })
+const timed = (text: string, delay: number, tone?: LineTone): OutputLine => ({ text, tone, delay })
 const plain = (...texts: string[]): CommandResult => ({ lines: texts.map((text) => line(text)) })
 const failure = (text: string): CommandResult => ({ lines: [line(text, 'error')] })
 const notice = (text: string): CommandResult => ({ lines: [line(text, 'muted')] })
@@ -302,8 +309,61 @@ function sudo(args: string[]): CommandResult {
   return failure(`sudo: ${args[0]}: command not found`)
 }
 
+// ---------- npm run dev: the signature moment ----------
+
+function devServer(): CommandResult {
+  return {
+    lines: [
+      timed('> portfolio@1.0.0 dev', 150, 'muted'),
+      timed('> vite', 0, 'muted'),
+      timed('', 100),
+      timed('→ Initializing portfolio...', 200, 'muted'),
+      timed('→ Loading components...', 200, 'muted'),
+      timed('→ Compiling experience...', 200, 'muted'),
+      timed('→ Optimizing recruiter mode...', 200, 'muted'),
+      timed('✓ Ready in 642ms', 300, 'success'),
+      timed('', 0),
+      {
+        text: '  ➜  Local:   ',
+        tone: 'info',
+        delay: 150,
+        link: { label: DEV_URL, href: CV_PATH },
+      },
+      timed('', 0),
+      timed('Open the link to launch CV.', 100),
+    ],
+  }
+}
+
+function npm(args: string[]): CommandResult {
+  if (args[0] === 'run' && args[1] === 'dev') return devServer()
+
+  if (args[0] === 'run' && !args[1]) {
+    return {
+      lines: [
+        line('Scripts available:', 'info'),
+        line('  dev'),
+        line('    vite', 'muted'),
+        line(''),
+        line('Run one with: npm run dev', 'muted'),
+      ],
+    }
+  }
+  if (args[0] === 'run') {
+    return {
+      lines: [
+        line(`npm error Missing script: "${args[1]}"`, 'error'),
+        line('npm error To see a list of scripts, run: npm run', 'muted'),
+      ],
+    }
+  }
+  if (!args[0]) return notice('usage: npm <command>  (try: npm run dev)')
+  return failure(`npm error Unknown command: "${args[0]}"`)
+}
+
 const COMMANDS: Command[] = [
   { name: 'help', description: 'Show this list', run: help },
+  { name: 'npm', description: 'Launch the CV (try: npm run dev)', run: npm },
   { name: 'about', description: 'Who I am', run: about },
   { name: 'projects', description: 'Things I have built', run: projects },
   { name: 'skills', description: 'Languages and tools', run: skills },
@@ -352,6 +412,7 @@ export function runCommand(input: string): CommandResult {
   }
   return command.run(args)
 }
+
 // ---------- autocomplete ----------
 
 const SUGGESTION_LIMIT = 12
@@ -359,6 +420,7 @@ const SUGGESTION_LIMIT = 12
 // Everything we are willing to suggest, most useful first.
 const SUGGESTIONS: string[] = [
   ...COMMANDS.map((command) => command.name),
+  'npm run dev',
   'git status',
   `sudo hire ${PROMPT_USER}`,
   ...fileTree.filter((node) => node.kind === 'folder').map((folder) => `ls ${folder.path}`),

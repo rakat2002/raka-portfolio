@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { prefersReducedMotion } from '../lib/browser'
 import { WELCOME_LINES, runCommand, type OutputLine } from '../lib/terminal'
 
 export type TerminalEntry =
@@ -8,6 +9,7 @@ export type TerminalEntry =
 export function useTerminal() {
   const nextId = useRef(1)
   const draft = useRef('') // what you had typed before you pressed the Up arrow
+  const timers = useRef<number[]>([]) // scheduled lines that have not appeared yet
 
   const [entries, setEntries] = useState<TerminalEntry[]>([
     { id: 0, kind: 'output', lines: WELCOME_LINES },
@@ -15,10 +17,24 @@ export function useTerminal() {
   const [input, setInput] = useState('')
   const [history, setHistory] = useState<string[]>([])
   const [position, setPosition] = useState(0) // where we are in the history
+  const [busy, setBusy] = useState(false) // true while a command is still printing
 
   const newId = () => nextId.current++
 
+  // If the terminal goes away, stop any output that is still on its way.
+  useEffect(() => {
+    const pending = timers.current
+    return () => pending.forEach((timer) => window.clearTimeout(timer))
+  }, [])
+
+  const cancelPending = () => {
+    timers.current.forEach((timer) => window.clearTimeout(timer))
+    timers.current.length = 0
+  }
+
   const submit = () => {
+    if (busy) return
+
     const command = input.trim()
     const echo: TerminalEntry = { id: newId(), kind: 'input', command }
 
@@ -41,9 +57,39 @@ export function useTerminal() {
       return
     }
 
-    const output: TerminalEntry[] =
-      result.lines.length > 0 ? [{ id: newId(), kind: 'output', lines: result.lines }] : []
-    setEntries((current) => [...current, echo, ...output])
+    const streamed = !prefersReducedMotion() && result.lines.some((item) => (item.delay ?? 0) > 0)
+
+    // Fast path: show everything at once.
+    if (!streamed) {
+      const output: TerminalEntry[] =
+        result.lines.length > 0 ? [{ id: newId(), kind: 'output', lines: result.lines }] : []
+      setEntries((current) => [...current, echo, ...output])
+      return
+    }
+
+    // Slow path: show the lines one at a time, as if a program were printing them.
+    const outputId = newId()
+    setEntries((current) => [...current, echo, { id: outputId, kind: 'output', lines: [] }])
+    setBusy(true)
+
+    let elapsed = 0
+    result.lines.forEach((item, index) => {
+      elapsed += item.delay ?? 0
+      const isLast = index === result.lines.length - 1
+
+      const timer = window.setTimeout(() => {
+        setEntries((current) =>
+          current.map((entry) =>
+            entry.kind === 'output' && entry.id === outputId
+              ? { ...entry, lines: [...entry.lines, item] }
+              : entry,
+          ),
+        )
+        if (isLast) setBusy(false)
+      }, elapsed)
+
+      timers.current.push(timer)
+    })
   }
 
   const historyUp = () => {
@@ -61,9 +107,13 @@ export function useTerminal() {
     setInput(next === history.length ? draft.current : history[next])
   }
 
-  const clear = () => setEntries([])
+  const clear = () => {
+    cancelPending()
+    setBusy(false)
+    setEntries([])
+  }
 
-  return { entries, input, setInput, submit, historyUp, historyDown, clear }
+  return { entries, input, setInput, submit, historyUp, historyDown, clear, busy }
 }
 
 export type TerminalState = ReturnType<typeof useTerminal>

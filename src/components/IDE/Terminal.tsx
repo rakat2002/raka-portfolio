@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import type { TerminalState } from '../../hooks/useTerminal'
-import { PROMPT_HOST, PROMPT_USER, getSuggestions, type LineTone } from '../../lib/terminal'
+import { isPlainLeftClick } from '../../lib/browser'
+import { getSuggestions, type LineTone, type OutputLine } from '../../lib/terminal'
+import Prompt from './Prompt'
 
 const TONE_CLASS: Record<LineTone, string> = {
   plain: 'text-ink-dim',
@@ -10,25 +12,43 @@ const TONE_CLASS: Record<LineTone, string> = {
   muted: 'text-ink-faint',
 }
 
-function Prompt() {
+interface OutputRowProps {
+  item: OutputLine
+  onLaunch?: (href: string) => void
+}
+
+function OutputRow({ item, onLaunch }: OutputRowProps) {
+  const { link } = item
+
   return (
-    <span className="shrink-0 select-none">
-      <span className="text-accent">
-        {PROMPT_USER}@{PROMPT_HOST}
-      </span>
-      <span className="text-ink-faint">:</span>
-      <span className="text-accent-2">~</span>
-      <span className="text-ink-faint">$</span>
-    </span>
+    <div className={`whitespace-pre-wrap break-words ${TONE_CLASS[item.tone ?? 'plain']}`}>
+      {item.text || '\u00a0'}
+      {link && (
+        <a
+          href={link.href}
+          onClick={(event) => {
+            // Without a launcher, or for Ctrl/Cmd-clicks, the browser follows the link itself.
+            if (!onLaunch || !isPlainLeftClick(event)) return
+            event.preventDefault()
+            event.stopPropagation()
+            onLaunch(link.href)
+          }}
+          className="link-pulse rounded px-1 font-bold text-accent-2 underline decoration-accent-2/50 underline-offset-4 hover:text-white"
+        >
+          {link.label}
+        </a>
+      )}
+    </div>
   )
 }
 
 interface TerminalProps {
   terminal: TerminalState
+  onLaunch?: (href: string) => void
 }
 
-export default function Terminal({ terminal }: TerminalProps) {
-  const { entries, input, setInput, submit, historyUp, historyDown, clear } = terminal
+export default function Terminal({ terminal, onLaunch }: TerminalProps) {
+  const { entries, input, setInput, submit, historyUp, historyDown, clear, busy } = terminal
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -51,6 +71,13 @@ export default function Terminal({ terminal }: TerminalProps) {
     if (active < 0) return
     document.getElementById(`terminal-suggestion-${active}`)?.scrollIntoView({ block: 'nearest' })
   }, [active])
+
+  // When a command finishes printing, put the cursor back on the prompt.
+  const wasBusy = useRef(false)
+  useEffect(() => {
+    if (wasBusy.current && !busy) inputRef.current?.focus()
+    wasBusy.current = busy
+  }, [busy])
 
   const closeSuggestions = () => {
     setOpen(false)
@@ -123,7 +150,7 @@ export default function Terminal({ terminal }: TerminalProps) {
       onClick={focusInput}
       className="min-h-0 flex-1 cursor-text overflow-auto p-3 font-mono text-[13px] leading-6"
     >
-      <div role="log" aria-label="Terminal output" aria-live="polite">
+      <div role="log" aria-label="Terminal output" aria-live="polite" aria-busy={busy}>
         {entries.map((entry) =>
           entry.kind === 'input' ? (
             <div key={entry.id} className="flex gap-2">
@@ -133,19 +160,15 @@ export default function Terminal({ terminal }: TerminalProps) {
           ) : (
             <div key={entry.id}>
               {entry.lines.map((item, index) => (
-                <div
-                  key={index}
-                  className={`whitespace-pre-wrap break-words ${TONE_CLASS[item.tone ?? 'plain']}`}
-                >
-                  {item.text || '\u00a0'}
-                </div>
+                <OutputRow key={index} item={item} onLaunch={onLaunch} />
               ))}
             </div>
           ),
         )}
       </div>
 
-      <div className="flex items-center gap-2">
+      {/* While a command is still printing, the prompt is hidden, like in a real terminal. */}
+      <div className={`flex items-center gap-2 ${busy ? 'hidden' : ''}`}>
         <Prompt />
         <input
           ref={inputRef}
