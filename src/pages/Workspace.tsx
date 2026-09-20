@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import ActivityBar from '../components/IDE/ActivityBar'
 import type { ActivityId } from '../components/IDE/activities'
 import EditorArea from '../components/IDE/EditorArea'
+import LaunchOverlay from '../components/IDE/LaunchOverlay'
 import Panel from '../components/IDE/Panel'
 import Sash from '../components/IDE/Sash'
 import SideBar from '../components/IDE/SideBar'
@@ -13,11 +15,16 @@ import { useEditorTabs } from '../hooks/useEditorTabs'
 import { useKeybindings } from '../hooks/useKeybindings'
 import { useResizable } from '../hooks/useResizable'
 import { useTerminal } from '../hooks/useTerminal'
+import { CV_PATH, prefersReducedMotion } from '../lib/browser'
+
+const LAUNCH_DELAY_MS = 650
 
 export default function Workspace() {
+  const navigate = useNavigate()
   const [activity, setActivity] = useState<ActivityId>('explorer')
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [panelOpen, setPanelOpen] = useState(true)
+  const [launchTarget, setLaunchTarget] = useState<string | null>(null)
   const { tabs, activePath, openFile, closeTab, activateTab, pinTab } = useEditorTabs(README_PATH)
   const { cursor, setCursor } = useCursors(activePath)
   const terminal = useTerminal()
@@ -31,6 +38,16 @@ export default function Workspace() {
   const togglePanel = () => setPanelOpen((open) => !open)
 
   useKeybindings({ b: toggleSidebar, '`': togglePanel })
+
+  // Show the "Opening localhost:5173..." screen, then move to the page.
+  useEffect(() => {
+    if (!launchTarget) return
+    const timer = window.setTimeout(
+      () => navigate(launchTarget),
+      prefersReducedMotion() ? 0 : LAUNCH_DELAY_MS,
+    )
+    return () => window.clearTimeout(timer)
+  }, [launchTarget, navigate])
 
   // Like VS Code: clicking the active icon hides the sidebar; another icon switches view.
   const selectActivity = (id: ActivityId) => {
@@ -49,6 +66,7 @@ export default function Workspace() {
         panelOpen={panelOpen}
         onToggleSidebar={toggleSidebar}
         onTogglePanel={togglePanel}
+        onLaunchCV={() => setLaunchTarget(CV_PATH)}
       />
 
       <div className="flex min-h-0 flex-1">
@@ -79,13 +97,20 @@ export default function Workspace() {
           {panelOpen && (
             <>
               <Sash orientation="horizontal" label="Resize panel" handlers={panel.handlers} />
-              <Panel height={panel.size} terminal={terminal} onClose={() => setPanelOpen(false)} />
+              <Panel
+                height={panel.size}
+                terminal={terminal}
+                onLaunch={setLaunchTarget}
+                onClose={() => setPanelOpen(false)}
+              />
             </>
           )}
         </div>
       </div>
 
       <StatusBar file={activeFile} cursor={cursor} />
+
+      {launchTarget && <LaunchOverlay />}
     </div>
   )
 }

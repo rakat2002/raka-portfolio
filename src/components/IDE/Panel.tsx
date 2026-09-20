@@ -17,10 +17,11 @@ const EMPTY_MESSAGES: Record<Exclude<PanelTab, 'Terminal'>, string> = {
 interface PanelProps {
   height: number
   terminal: TerminalState
+  onLaunch: (href: string) => void
   onClose: () => void
 }
 
-export default function Panel({ height, terminal, onClose }: PanelProps) {
+export default function Panel({ height, terminal, onLaunch, onClose }: PanelProps) {
   const [active, setActive] = useState<PanelTab>('Terminal')
 
   return (
@@ -49,7 +50,7 @@ export default function Panel({ height, terminal, onClose }: PanelProps) {
 
       <div role="tabpanel" className="flex min-h-0 flex-1 flex-col">
         {active === 'Terminal' ? (
-          <Terminal terminal={terminal} />
+          <Terminal terminal={terminal} onLaunch={onLaunch} />
         ) : (
           <p className="p-3 font-mono text-sm text-ink-faint">{EMPTY_MESSAGES[active]}</p>
         )}

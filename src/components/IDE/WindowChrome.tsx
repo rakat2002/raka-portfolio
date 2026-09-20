@@ -1,4 +1,5 @@
-import { PanelBottom, PanelLeft, Search } from 'lucide-react'
+import { FileText, PanelBottom, PanelLeft, Search } from 'lucide-react'
+import { CV_PATH, isPlainLeftClick } from '../../lib/browser'
 import IconButton from '../UI/IconButton'
 
 const MENUS = ['File', 'Edit', 'Selection', 'View', 'Go', 'Run', 'Terminal', 'Help']
@@ -8,6 +9,7 @@ interface WindowChromeProps {
   panelOpen: boolean
   onToggleSidebar: () => void
   onTogglePanel: () => void
+  onLaunchCV: () => void
 }
 
 export default function WindowChrome({
@@ -15,6 +17,7 @@ export default function WindowChrome({
   panelOpen,
   onToggleSidebar,
   onTogglePanel,
+  onLaunchCV,
 }: WindowChromeProps) {
   return (
     <header className="grid h-9 shrink-0 grid-cols-[1fr_auto_1fr] items-center border-b border-line bg-titlebar px-2 text-xs text-titlebar-ink">
@@ -46,7 +49,20 @@ export default function WindowChrome({
         raka.dev
       </button>
 
-      <div className="flex items-center justify-end gap-1">
+            <div className="flex items-center justify-end gap-1">
+        <a href={CV_PATH}
+          aria-label="View CV"
+          title="View CV"
+          onClick={(event) => {
+            if (!isPlainLeftClick(event)) return
+            event.preventDefault()
+            onLaunchCV()
+          }}
+          className="mr-1 flex h-7 items-center gap-1.5 rounded px-2 transition-colors hover:bg-highlight"
+        >
+          <FileText size={14} aria-hidden="true" />
+          <span className="hidden sm:inline">View CV</span>
+        </a>
         <IconButton
           label="Toggle Primary Sidebar (Ctrl+B)"
           aria-pressed={sidebarOpen}

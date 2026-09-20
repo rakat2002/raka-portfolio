@@ -3,7 +3,7 @@ import { profile } from '../data/profile'
 
 export default function CV() {
   return (
-    <main className="min-h-full bg-white p-10 text-zinc-900">
+    <main className="page-in min-h-full bg-white p-10 text-zinc-900">
       <Link to="/" className="text-sm text-fuchsia-700 underline">
         ← Back to Workspace
       </Link>
