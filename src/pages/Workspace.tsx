@@ -12,6 +12,7 @@ import { useCursors } from '../hooks/useCursors'
 import { useEditorTabs } from '../hooks/useEditorTabs'
 import { useKeybindings } from '../hooks/useKeybindings'
 import { useResizable } from '../hooks/useResizable'
+import { useTerminal } from '../hooks/useTerminal'
 
 export default function Workspace() {
   const [activity, setActivity] = useState<ActivityId>('explorer')
@@ -19,6 +20,7 @@ export default function Workspace() {
   const [panelOpen, setPanelOpen] = useState(true)
   const { tabs, activePath, openFile, closeTab, activateTab, pinTab } = useEditorTabs(README_PATH)
   const { cursor, setCursor } = useCursors(activePath)
+  const terminal = useTerminal()
 
   const activeFile = activePath ? (filesByPath.get(activePath) ?? null) : null
 
@@ -77,7 +79,7 @@ export default function Workspace() {
           {panelOpen && (
             <>
               <Sash orientation="horizontal" label="Resize panel" handlers={panel.handlers} />
-              <Panel height={panel.size} onClose={() => setPanelOpen(false)} />
+              <Panel height={panel.size} terminal={terminal} onClose={() => setPanelOpen(false)} />
             </>
           )}
         </div>
