@@ -12,7 +12,7 @@ function summaryText(): string {
 
 export default function ProfileSection() {
   return (
-    <Section title="Profile">
+    <Section title="About Me">
       <p>{summaryText()}</p>
       {profile.currentlyLearning.length > 0 && (
         <p className="mt-2 text-zinc-600">

@@ -1,7 +1,20 @@
+import AchievementsSection from '../components/CV/AchievementsSection'
+import ContactSection from '../components/CV/ContactSection'
 import CVActions from '../components/CV/CVActions'
 import CVHeader from '../components/CV/CVHeader'
+import EntrySection from '../components/CV/EntrySection'
+import InterestsSection from '../components/CV/InterestsSection'
+import LanguagesSection from '../components/CV/LanguagesSection'
 import ProfileSection from '../components/CV/ProfileSection'
+import ProjectsSection from '../components/CV/ProjectsSection'
+import SkillsSection from '../components/CV/SkillsSection'
 import { profile } from '../data/profile'
+import {
+  activityEntries,
+  educationEntries,
+  experienceEntries,
+  publicationEntries,
+} from '../lib/cvData'
 import { countPlaceholders } from '../lib/placeholders'
 
 export default function CV() {
@@ -25,6 +38,16 @@ export default function CV() {
         <article className="rounded-md bg-white px-10 py-9 shadow-sm ring-1 ring-zinc-200 print:rounded-none print:p-0 print:shadow-none print:ring-0">
           <CVHeader />
           <ProfileSection />
+          <EntrySection title="Education" entries={educationEntries()} />
+          <SkillsSection />
+          <ProjectsSection />
+          <EntrySection title="Experience" entries={experienceEntries()} />
+          <EntrySection title="Leadership & Activities" entries={activityEntries()} />
+          <EntrySection title="Publications & Research" entries={publicationEntries()} />
+          <AchievementsSection />
+          <LanguagesSection />
+          <InterestsSection />
+          <ContactSection />
         </article>
       </div>
     </div>
