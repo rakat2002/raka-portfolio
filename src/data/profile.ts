@@ -27,7 +27,19 @@ export interface Activity {
   period: string
 }
 
+export interface SpokenLanguage {
+  name: string
+  level: string
+}
+
+export interface Publication {
+  title: string
+  venue: string
+  year: string
+}
+
 export interface Profile {
+  
   name: string
   role: string
   location: string
@@ -46,6 +58,9 @@ export interface Profile {
     tagline: string
   summary: string
   cvFile: string
+  languages: SpokenLanguage[]
+  publications: Publication[]
+  artLink: string
 }
 
 // Anything that starts with "TODO:" is a placeholder for you to fill in.
@@ -59,7 +74,10 @@ export const profile: Profile = {
   photo: "/profile.jpg",
     tagline: "AI • Software Development • Problem Solving • Digital Art", // edit to taste
   summary: "", // TODO: 2-3 sentences about you. Leave it empty to get an automatic summary.
-  cvFile: "/cv.pdf", // a PDF you put in the public folder (added in the next part)
+  cvFile: "/cv.pdf",
+    languages: [], // TODO: for example { name: "English", level: "Fluent" }, only true ones
+  publications: [], // TODO: papers, posters, thesis... leave empty if you have none
+  artLink: "", // TODO: link to your digital art. Leave empty to hide it // a PDF you put in the public folder (added in the next part)
   interests: [
     "Software Engineering",
     "Problem Solving",
