@@ -1,10 +1,16 @@
-import { ArrowLeft, Printer } from 'lucide-react'
+import { ArrowLeft, Download, Printer } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { profile } from '../../data/profile'
+import { useFileExists } from '../../hooks/useFileExists'
 
 const BUTTON =
   'inline-flex h-8 items-center gap-1.5 rounded-md border border-zinc-300 bg-white px-3 text-[13px] font-medium text-zinc-800 transition-colors hover:bg-zinc-50'
 
+const DOWNLOAD_NAME = `${profile.name.trim().replace(/\s+/g, '-')}-CV.pdf`
+
 export default function CVActions() {
+  const hasPdf = useFileExists(profile.cvFile, 'pdf')
+
   return (
     <nav
       aria-label="CV actions"
@@ -15,6 +21,12 @@ export default function CVActions() {
         Back to Workspace
       </Link>
       <div className="flex items-center gap-2">
+        {hasPdf && (
+          <a href={profile.cvFile} download={DOWNLOAD_NAME} className={BUTTON}>
+            <Download size={14} aria-hidden="true" />
+            Download CV
+          </a>
+        )}
         <button type="button" onClick={() => window.print()} className={BUTTON}>
           <Printer size={14} aria-hidden="true" />
           Print
