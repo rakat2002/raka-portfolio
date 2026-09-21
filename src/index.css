@@ -171,3 +171,22 @@
   transform-origin: left;
   animation: launch-progress 600ms ease-in-out both;
 }
+/* The CV is light, so keyboard focus needs a darker ring than the workspace */
+.cv-page :focus-visible {
+  outline-color: #86198f;
+}
+
+/* Printing the CV */
+@page {
+  size: A4;
+  margin: 14mm;
+}
+
+@media print {
+  html,
+  body,
+  #root {
+    height: auto !important;
+    background: #fff !important;
+  }
+}

@@ -43,6 +43,9 @@ export interface Profile {
   experience: Experience[]
   activities: Activity[]
   achievements: string[]
+    tagline: string
+  summary: string
+  cvFile: string
 }
 
 // Anything that starts with "TODO:" is a placeholder for you to fill in.
@@ -54,6 +57,9 @@ export const profile: Profile = {
   github: "https://github.com/rakat2002",
   linkedin: "TODO: https://linkedin.com/in/your-username",
   photo: "/profile.jpg",
+    tagline: "AI • Software Development • Problem Solving • Digital Art", // edit to taste
+  summary: "", // TODO: 2-3 sentences about you. Leave it empty to get an automatic summary.
+  cvFile: "/cv.pdf", // a PDF you put in the public folder (added in the next part)
   interests: [
     "Software Engineering",
     "Problem Solving",
