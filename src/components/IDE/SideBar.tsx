@@ -1,16 +1,20 @@
 import { ACTIVITIES, type ActivityId } from './activities'
+import ExtensionsPanel from './ExtensionsPanel'
 import FileExplorer from './FileExplorer'
+import type { useExtensions } from '../../hooks/useExtensions'
 
 interface SideBarProps {
   activity: ActivityId
   width: number
   activePath: string | null
   onOpenFile: (path: string, pinned: boolean) => void
+  extensions: ReturnType<typeof useExtensions>
 }
 
-export default function SideBar({ activity, width, activePath, onOpenFile }: SideBarProps) {
+export default function SideBar({ activity, width, activePath, onOpenFile, extensions }: SideBarProps) {
   const title = ACTIVITIES.find((item) => item.id === activity)?.label ?? ''
   const showExplorer = activity === 'explorer'
+  const showExtensions = activity === 'extensions'
 
   return (
     <aside aria-label={title} style={{ width }} className="flex shrink-0 flex-col bg-sidebar">
@@ -22,7 +26,9 @@ export default function SideBar({ activity, width, activePath, onOpenFile }: Sid
         <FileExplorer activePath={activePath} onOpen={onOpenFile} />
       </div>
 
-      {!showExplorer && (
+      {showExtensions && <ExtensionsPanel extensions={extensions} />}
+
+      {!showExplorer && !showExtensions && (
         <div className="flex-1 overflow-auto px-5 py-2 text-sm text-ink-faint">
           The {title} view arrives in a later step.
         </div>

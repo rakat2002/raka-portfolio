@@ -190,3 +190,64 @@
     background: #fff !important;
   }
 }
+/* Obsidian Blackout theme extension — backgrounds only.
+   Accent, tab-active and caret variables are deliberately NOT overridden here,
+   so tabs and the cursor stay pink. */
+[data-theme="blackout"] {
+  --bg-primary: #000000;
+  --bg-secondary: #050505;
+  --bg-titlebar: #0a0a0a;
+  --bg-activitybar: #0a0a0a;
+  --bg-sidebar: #050505;
+  --bg-editor: #000000;
+  --bg-tabs: #0a0a0a;
+  --bg-terminal: #000000;
+  --bg-statusbar: #0a0a0a;
+  --bg-selection: #1a1a1a;
+  --bg-highlight: #141414;
+  --bg-current-line: #111111;
+  --border-subtle: #1a1a1a;
+  --border-edge: #2a2a2a;
+  --text-primary: #f0f0f0;
+  --text-secondary: #b0b0b0;
+  --text-muted: #808080;
+}
+/* Baby Pink theme extension — soft pink background, dark ash text, deep pink tabs. */
+/* Baby Pink theme extension — soft pink background, dark ash text, deep pink tabs. */
+[data-theme="babypink"] {
+  --bg-primary: #fdeef2;
+  --bg-secondary: #fbe3ea;
+  --bg-titlebar: #f7d3e0;
+  --bg-activitybar: #f7d3e0;
+  --bg-sidebar: #fbe3ea;
+  --bg-editor: #fdeef2;
+  --bg-tabs: #f7d3e0;
+  --bg-tab-active: #d6336c;
+  --bg-tab-inactive: #f2c4d6;
+  --bg-terminal: #fbe3ea;
+  --bg-statusbar: #d6336c;
+  --bg-selection: #f0a8c4;
+  --bg-highlight: #f5c9db;
+  --bg-current-line: #f0b9d0;
+  --border-subtle: #f2b8cf;
+  --border-edge: #e893b8;
+  --text-primary: #3a3238;
+  --text-secondary: #5c5259;
+  --text-muted: #8a8188;
+  --text-titlebar: #3a3238;
+  --text-statusbar: #ffffff;
+
+  /* Syntax colors: dark ash tones instead of the default theme's bright pastels,
+     so code and README text stay readable on the pale pink background. */
+  --syntax-default: #3a3238;
+  --syntax-comment: #8a8188;
+  --syntax-constant: #a3305c;
+  --syntax-keyword: #b3225f;
+  --syntax-storage: #9c1f52;
+  --syntax-function: #a3305c;
+  --syntax-string: #4a4248;
+  --syntax-support: #6b4a58;
+  --syntax-variable: #5c5259;
+  --syntax-tag: #b3225f;
+  --syntax-attr: #7a4a34;
+}
