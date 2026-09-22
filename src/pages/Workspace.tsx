@@ -12,10 +12,12 @@ import WindowChrome from '../components/IDE/WindowChrome'
 import { README_PATH, filesByPath } from '../data/portfolioFiles'
 import { useCursors } from '../hooks/useCursors'
 import { useEditorTabs } from '../hooks/useEditorTabs'
+import { useExtensions } from '../hooks/useExtensions'
 import { useKeybindings } from '../hooks/useKeybindings'
 import { useResizable } from '../hooks/useResizable'
 import { useTerminal } from '../hooks/useTerminal'
 import { CV_PATH, prefersReducedMotion } from '../lib/browser'
+import { EXTENSIONS } from '../lib/extensions'
 
 const LAUNCH_DELAY_MS = 650
 
@@ -28,8 +30,10 @@ export default function Workspace() {
   const { tabs, activePath, openFile, closeTab, activateTab, pinTab } = useEditorTabs(README_PATH)
   const { cursor, setCursor } = useCursors(activePath)
   const terminal = useTerminal()
+  const extensions = useExtensions()
 
   const activeFile = activePath ? (filesByPath.get(activePath) ?? null) : null
+  const activeThemeDef = EXTENSIONS.find((ext) => ext.id === extensions.activeThemeId)
 
   const sidebar = useResizable({ initial: 260, min: 180, max: 480, axis: 'x' })
   const panel = useResizable({ initial: 220, min: 100, max: 500, axis: 'y', invert: true })
@@ -39,7 +43,6 @@ export default function Workspace() {
 
   useKeybindings({ b: toggleSidebar, '`': togglePanel })
 
-  // Show the "Opening localhost:5173..." screen, then move to the page.
   useEffect(() => {
     if (!launchTarget) return
     const timer = window.setTimeout(
@@ -49,7 +52,6 @@ export default function Workspace() {
     return () => window.clearTimeout(timer)
   }, [launchTarget, navigate])
 
-  // Like VS Code: clicking the active icon hides the sidebar; another icon switches view.
   const selectActivity = (id: ActivityId) => {
     if (id === activity && sidebarOpen) {
       setSidebarOpen(false)
@@ -60,7 +62,10 @@ export default function Workspace() {
   }
 
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-surface text-ink">
+    <div
+      data-theme={activeThemeDef?.themeDataValue}
+      className="flex h-full flex-col overflow-hidden bg-surface text-ink"
+    >
       <WindowChrome
         sidebarOpen={sidebarOpen}
         panelOpen={panelOpen}
@@ -79,6 +84,7 @@ export default function Workspace() {
               width={sidebar.size}
               activePath={activePath}
               onOpenFile={openFile}
+              extensions={extensions}
             />
             <Sash orientation="vertical" label="Resize sidebar" handlers={sidebar.handlers} />
           </>
@@ -97,12 +103,7 @@ export default function Workspace() {
           {panelOpen && (
             <>
               <Sash orientation="horizontal" label="Resize panel" handlers={panel.handlers} />
-              <Panel
-                height={panel.size}
-                terminal={terminal}
-                onLaunch={setLaunchTarget}
-                onClose={() => setPanelOpen(false)}
-              />
+              <Panel height={panel.size} terminal={terminal} onLaunch={setLaunchTarget} onClose={() => setPanelOpen(false)} />
             </>
           )}
         </div>
