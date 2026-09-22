@@ -64,28 +64,7 @@ export const skillRows = () =>
     { label: 'Tools', items: clean(profile.skills.tools) },
   ].filter((row) => row.items.length > 0)
 
-export interface ProjectData {
-  key: string
-  name: string
-  description?: string
-  technologies: string[]
-  features: string[]
-  github?: string
-  liveDemo?: string
-}
 
-export const projectEntries = (): ProjectData[] =>
-  profile.projects
-    .filter((project) => !isPlaceholder(project.name))
-    .map((project) => ({
-      key: project.name,
-      name: project.name,
-      description: visible(project.description),
-      technologies: clean(project.technologies),
-      features: clean(project.features),
-      github: visible(project.github),
-      liveDemo: visible(project.liveDemo),
-    }))
 
 export const achievementItems = (): string[] => clean(profile.achievements)
 
@@ -120,3 +99,25 @@ export function contactRows(): ContactRow[] {
   if (location) rows.push({ label: 'Location', text: location })
   return rows
 }
+export interface ProjectData {
+  key: string
+  name: string
+  description?: string
+  technologies: string[]
+  features: string[]
+  github?: string
+  liveDemo?: string
+}
+
+export const projectEntries = (): ProjectData[] =>
+  profile.projects
+    .filter((project) => !isPlaceholder(project.name))
+    .map((project) => ({
+      key: project.name,
+      name: project.name,
+      description: visible(project.description),
+      technologies: clean(project.technologies),
+      features: clean(project.features),
+      github: visible(project.github),
+      liveDemo: visible(project.liveDemo),
+    }))

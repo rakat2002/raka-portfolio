@@ -40,7 +40,6 @@ export default function CV() {
           <ProfileSection />
           <EntrySection title="Education" entries={educationEntries()} />
           <SkillsSection />
-          <ProjectsSection />
           <EntrySection title="Experience" entries={experienceEntries()} />
           <EntrySection title="Leadership & Activities" entries={activityEntries()} />
           <EntrySection title="Publications & Research" entries={publicationEntries()} />
@@ -48,6 +47,7 @@ export default function CV() {
           <LanguagesSection />
           <InterestsSection />
           <ContactSection />
+          <ProjectsSection />
         </article>
       </div>
     </div>

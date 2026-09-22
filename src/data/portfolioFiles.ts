@@ -66,17 +66,14 @@ function readme(p: Profile): string {
     p.role,
     p.interests.join(' · '),
     '',
-    '────────────────────────────',
-    '',
-    'Welcome to my developer workspace.',
-    '',
+    '# Welcome to my developer workspace.',
     "This isn't a traditional portfolio.",
     "You're currently inside my codebase.",
     '',
-    'Explore the files on the left,',
-    'or open the terminal below.',
+    'Explore the files on the left',
+    '# open the terminal (clt + ` ).',
     '',
-    '$ help',
+    
   ].join('\n')
 }
 
