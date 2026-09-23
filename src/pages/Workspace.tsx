@@ -66,6 +66,7 @@ export default function Workspace() {
       data-theme={activeThemeDef?.themeDataValue}
       className="flex h-full flex-col overflow-hidden bg-surface text-ink"
     >
+           
       <WindowChrome
         sidebarOpen={sidebarOpen}
         panelOpen={panelOpen}

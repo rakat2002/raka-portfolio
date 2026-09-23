@@ -190,6 +190,7 @@
     background: #fff !important;
   }
 }
+
 /* Obsidian Blackout theme extension — backgrounds only.
    Accent, tab-active and caret variables are deliberately NOT overridden here,
    so tabs and the cursor stay pink. */
@@ -212,7 +213,7 @@
   --text-secondary: #b0b0b0;
   --text-muted: #808080;
 }
-/* Baby Pink theme extension — soft pink background, dark ash text, deep pink tabs. */
+
 /* Baby Pink theme extension — soft pink background, dark ash text, deep pink tabs. */
 [data-theme="babypink"] {
   --bg-primary: #fdeef2;

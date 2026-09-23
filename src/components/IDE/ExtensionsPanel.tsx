@@ -25,8 +25,36 @@ export default function ExtensionsPanel({ extensions }: ExtensionsPanelProps) {
     }, INSTALL_MS)
   }
 
+  const isDefaultActive = activeThemeId === null
+
   return (
     <div className="min-h-0 flex-1 overflow-auto px-2 py-2">
+      {/* The built-in look. Always available, nothing to install or uninstall. */}
+      <div className="mb-2 rounded-md border border-line bg-panel p-2.5">
+        <div className="flex items-start gap-2">
+          <div className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded bg-highlight text-accent-2">
+            <Palette size={14} aria-hidden="true" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[13px] font-medium text-ink">Default Theme</p>
+            <p className="text-[11px] text-ink-faint">raka</p>
+            <p className="mt-1 text-[12px] leading-snug text-ink-dim">
+              The original workspace look. Built in, always available.
+            </p>
+            <div className="mt-2">
+              <button type="button" disabled={isDefaultActive} onClick={() => setActiveThemeId(null)}
+                className={`flex items-center gap-1 rounded px-2 py-1 text-[11px] font-medium transition-colors ${
+                  isDefaultActive ? 'bg-selection text-white' : 'border border-edge/50 text-ink hover:bg-highlight'
+                }`}
+              >
+                {isDefaultActive && <Check size={11} aria-hidden="true" />}
+                {isDefaultActive ? 'Active' : 'Activate'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <ul className="space-y-1">
         {EXTENSIONS.map((ext) => {
           const installedNow = isInstalled(ext.id)
