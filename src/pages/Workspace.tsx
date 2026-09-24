@@ -61,12 +61,13 @@ export default function Workspace() {
     }
   }
 
+  const openTerminal = () => setPanelOpen(true)
+
   return (
     <div
       data-theme={activeThemeDef?.themeDataValue}
       className="flex h-full flex-col overflow-hidden bg-surface text-ink"
     >
-           
       <WindowChrome
         sidebarOpen={sidebarOpen}
         panelOpen={panelOpen}
@@ -86,6 +87,8 @@ export default function Workspace() {
               activePath={activePath}
               onOpenFile={openFile}
               extensions={extensions}
+              onLaunchCV={() => setLaunchTarget(CV_PATH)}
+              onOpenTerminal={openTerminal}
             />
             <Sash orientation="vertical" label="Resize sidebar" handlers={sidebar.handlers} />
           </>
