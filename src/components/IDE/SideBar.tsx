@@ -1,4 +1,5 @@
 import type { useExtensions } from '../../hooks/useExtensions'
+import type { TerminalState } from '../../hooks/useTerminal'
 import { ACTIVITIES, type ActivityId } from './activities'
 import ExtensionsPanel from './ExtensionsPanel'
 import FileExplorer from './FileExplorer'
@@ -12,8 +13,9 @@ interface SideBarProps {
   activePath: string | null
   onOpenFile: (path: string, pinned: boolean) => void
   extensions: ReturnType<typeof useExtensions>
+  terminal: TerminalState
   onLaunchCV: () => void
-  onOpenTerminal: () => void
+  onRunProgram: () => void
 }
 
 export default function SideBar({
@@ -22,8 +24,9 @@ export default function SideBar({
   activePath,
   onOpenFile,
   extensions,
+  terminal,
   onLaunchCV,
-  onOpenTerminal,
+  onRunProgram,
 }: SideBarProps) {
   const title = ACTIVITIES.find((item) => item.id === activity)?.label ?? ''
 
@@ -39,7 +42,9 @@ export default function SideBar({
 
       {activity === 'search' && <SearchPanel onOpen={onOpenFile} />}
       {activity === 'source-control' && <SourceControlPanel />}
-      {activity === 'run' && <RunPanel onLaunchCV={onLaunchCV} onOpenTerminal={onOpenTerminal} />}
+      {activity === 'run' && (
+        <RunPanel terminal={terminal} onLaunchCV={onLaunchCV} onRunProgram={onRunProgram} />
+      )}
       {activity === 'extensions' && <ExtensionsPanel extensions={extensions} />}
     </aside>
   )

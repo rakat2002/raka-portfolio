@@ -8,20 +8,19 @@ export type TerminalEntry =
 
 export function useTerminal() {
   const nextId = useRef(1)
-  const draft = useRef('') // what you had typed before you pressed the Up arrow
-  const timers = useRef<number[]>([]) // scheduled lines that have not appeared yet
+  const draft = useRef('')
+  const timers = useRef<number[]>([])
 
   const [entries, setEntries] = useState<TerminalEntry[]>([
     { id: 0, kind: 'output', lines: WELCOME_LINES },
   ])
   const [input, setInput] = useState('')
   const [history, setHistory] = useState<string[]>([])
-  const [position, setPosition] = useState(0) // where we are in the history
-  const [busy, setBusy] = useState(false) // true while a command is still printing
+  const [position, setPosition] = useState(0)
+  const [busy, setBusy] = useState(false)
 
   const newId = () => nextId.current++
 
-  // If the terminal goes away, stop any output that is still on its way.
   useEffect(() => {
     const pending = timers.current
     return () => pending.forEach((timer) => window.clearTimeout(timer))
@@ -32,50 +31,24 @@ export function useTerminal() {
     timers.current.length = 0
   }
 
-  const submit = () => {
-    if (busy) return
-
-    const command = input.trim()
+  const streamOutput = (command: string, lines: OutputLine[]) => {
     const echo: TerminalEntry = { id: newId(), kind: 'input', command }
+    const streamed = !prefersReducedMotion() && lines.some((item) => (item.delay ?? 0) > 0)
 
-    setInput('')
-    draft.current = ''
-
-    // Pressing Enter on an empty line just gives a fresh prompt, like a real shell.
-    if (command === '') {
-      setPosition(history.length)
-      setEntries((current) => [...current, echo])
-      return
-    }
-
-    setHistory((current) => [...current, command])
-    setPosition(history.length + 1)
-
-    const result = runCommand(command)
-    if (result.clear) {
-      setEntries([])
-      return
-    }
-
-    const streamed = !prefersReducedMotion() && result.lines.some((item) => (item.delay ?? 0) > 0)
-
-    // Fast path: show everything at once.
     if (!streamed) {
-      const output: TerminalEntry[] =
-        result.lines.length > 0 ? [{ id: newId(), kind: 'output', lines: result.lines }] : []
+      const output: TerminalEntry[] = lines.length > 0 ? [{ id: newId(), kind: 'output', lines }] : []
       setEntries((current) => [...current, echo, ...output])
       return
     }
 
-    // Slow path: show the lines one at a time, as if a program were printing them.
     const outputId = newId()
     setEntries((current) => [...current, echo, { id: outputId, kind: 'output', lines: [] }])
     setBusy(true)
 
     let elapsed = 0
-    result.lines.forEach((item, index) => {
+    lines.forEach((item, index) => {
       elapsed += item.delay ?? 0
-      const isLast = index === result.lines.length - 1
+      const isLast = index === lines.length - 1
 
       const timer = window.setTimeout(() => {
         setEntries((current) =>
@@ -90,6 +63,37 @@ export function useTerminal() {
 
       timers.current.push(timer)
     })
+  }
+
+  const submit = () => {
+    if (busy) return
+
+    const command = input.trim()
+    setInput('')
+    draft.current = ''
+
+    if (command === '') {
+      setPosition(history.length)
+      setEntries((current) => [...current, { id: newId(), kind: 'input', command }])
+      return
+    }
+
+    setHistory((current) => [...current, command])
+    setPosition(history.length + 1)
+
+    const result = runCommand(command)
+    if (result.clear) {
+      setEntries([])
+      return
+    }
+    streamOutput(command, result.lines)
+  }
+
+  const runProgram = (command: string, lines: OutputLine[]) => {
+    if (busy) return
+    setHistory((current) => [...current, command])
+    setPosition(history.length + 1)
+    streamOutput(command, lines)
   }
 
   const historyUp = () => {
@@ -113,7 +117,7 @@ export function useTerminal() {
     setEntries([])
   }
 
-  return { entries, input, setInput, submit, historyUp, historyDown, clear, busy }
+  return { entries, input, setInput, submit, historyUp, historyDown, clear, busy, runProgram }
 }
 
 export type TerminalState = ReturnType<typeof useTerminal>

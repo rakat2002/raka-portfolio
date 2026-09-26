@@ -1,11 +1,10 @@
-import { useState } from 'react'
 import { X } from 'lucide-react'
-import type { TerminalState } from '../../hooks/useTerminal'
 import IconButton from '../UI/IconButton'
 import Terminal from './Terminal'
+import type { TerminalState } from '../../hooks/useTerminal'
 
-const TABS = ['Problems', 'Output', 'Debug Console', 'Terminal', 'Ports'] as const
-type PanelTab = (typeof TABS)[number]
+export const PANEL_TABS = ['Problems', 'Output', 'Debug Console', 'Terminal', 'Ports'] as const
+export type PanelTab = (typeof PANEL_TABS)[number]
 
 const EMPTY_MESSAGES: Record<Exclude<PanelTab, 'Terminal'>, string> = {
   Problems: 'No problems have been detected in the workspace.',
@@ -16,25 +15,22 @@ const EMPTY_MESSAGES: Record<Exclude<PanelTab, 'Terminal'>, string> = {
 
 interface PanelProps {
   height: number
+  active: PanelTab
+  onActiveChange: (tab: PanelTab) => void
   terminal: TerminalState
   onLaunch: (href: string) => void
   onClose: () => void
 }
 
-export default function Panel({ height, terminal, onLaunch, onClose }: PanelProps) {
-  const [active, setActive] = useState<PanelTab>('Terminal')
-
+export default function Panel({ height, active, onActiveChange, terminal, onLaunch, onClose }: PanelProps) {
   return (
     <section aria-label="Panel" style={{ height }} className="flex shrink-0 flex-col bg-terminal">
       <div className="flex h-9 shrink-0 items-center justify-between px-2">
         <div role="tablist" aria-label="Panel views" className="flex h-full items-center gap-1">
-          {TABS.map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              role="tab"
+          {PANEL_TABS.map((tab) => (
+            <button key={tab} type="button" role="tab"
               aria-selected={active === tab}
-              onClick={() => setActive(tab)}
+              onClick={() => onActiveChange(tab)}
               className={`rounded px-3 py-1 text-[13px] transition-colors ${
                 active === tab ? 'bg-selection text-ink' : 'text-ink-faint hover:text-ink-dim'
               }`}
