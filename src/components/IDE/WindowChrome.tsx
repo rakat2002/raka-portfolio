@@ -1,12 +1,12 @@
 import { FileText, PanelBottom, PanelLeft, Search } from 'lucide-react'
 import { CV_PATH, isPlainLeftClick } from '../../lib/browser'
 import IconButton from '../UI/IconButton'
-
-const MENUS = ['File', 'Edit', 'Selection', 'View', 'Go', 'Run', 'Terminal', 'Help']
+import MenuBar, { type MenuDef } from './MenuBar'
 
 interface WindowChromeProps {
   sidebarOpen: boolean
   panelOpen: boolean
+  menus: MenuDef[]
   onToggleSidebar: () => void
   onTogglePanel: () => void
   onLaunchCV: () => void
@@ -15,6 +15,7 @@ interface WindowChromeProps {
 export default function WindowChrome({
   sidebarOpen,
   panelOpen,
+  menus,
   onToggleSidebar,
   onTogglePanel,
   onLaunchCV,
@@ -25,13 +26,7 @@ export default function WindowChrome({
         <span className="mr-2 grid h-5 w-5 place-items-center rounded bg-accent font-mono text-[11px] font-bold text-white">
           R
         </span>
-        <nav aria-label="Application menu" className="hidden items-center md:flex">
-          {MENUS.map((menu) => (
-            <button key={menu} type="button" className="rounded px-2 py-1 transition-colors hover:bg-highlight">
-              {menu}
-            </button>
-          ))}
-        </nav>
+        <MenuBar menus={menus} />
       </div>
 
       <button type="button" className="flex h-6 w-[min(30rem,40vw)] items-center justify-center gap-2 rounded-md border border-white/20 bg-white/5 transition-colors hover:bg-white/10">

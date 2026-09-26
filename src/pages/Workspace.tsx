@@ -4,11 +4,13 @@ import ActivityBar from '../components/IDE/ActivityBar'
 import type { ActivityId } from '../components/IDE/activities'
 import EditorArea from '../components/IDE/EditorArea'
 import LaunchOverlay from '../components/IDE/LaunchOverlay'
-import Panel from '../components/IDE/Panel'
+import type { MenuDef } from '../components/IDE/MenuBar'
+import Panel, { type PanelTab } from '../components/IDE/Panel'
 import Sash from '../components/IDE/Sash'
 import SideBar from '../components/IDE/SideBar'
 import StatusBar from '../components/IDE/StatusBar'
 import WindowChrome from '../components/IDE/WindowChrome'
+import { profile } from '../data/profile'
 import { README_PATH, filesByPath } from '../data/portfolioFiles'
 import { useCursors } from '../hooks/useCursors'
 import { useEditorTabs } from '../hooks/useEditorTabs'
@@ -18,6 +20,8 @@ import { useResizable } from '../hooks/useResizable'
 import { useTerminal } from '../hooks/useTerminal'
 import { CV_PATH, prefersReducedMotion } from '../lib/browser'
 import { EXTENSIONS } from '../lib/extensions'
+import { visible } from '../lib/placeholders'
+import { getRunConfig, runnableProjects } from '../lib/runConfigs'
 
 const LAUNCH_DELAY_MS = 650
 
@@ -26,6 +30,7 @@ export default function Workspace() {
   const [activity, setActivity] = useState<ActivityId>('explorer')
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [panelOpen, setPanelOpen] = useState(true)
+  const [panelTab, setPanelTab] = useState<PanelTab>('Terminal')
   const [launchTarget, setLaunchTarget] = useState<string | null>(null)
   const { tabs, activePath, openFile, closeTab, activateTab, pinTab } = useEditorTabs(README_PATH)
   const { cursor, setCursor } = useCursors(activePath)
@@ -61,7 +66,84 @@ export default function Workspace() {
     }
   }
 
-  const openTerminal = () => setPanelOpen(true)
+  // Opens the panel and switches it to the Terminal tab, used when a project is run.
+  const showTerminal = () => {
+    setPanelOpen(true)
+    setPanelTab('Terminal')
+  }
+
+  const runProject = (name: string, technologies: string[]) => {
+    const config = getRunConfig(name, technologies)
+    showTerminal()
+    terminal.runProgram(config.command, config.lines)
+  }
+
+  const menus: MenuDef[] = [
+    {
+      id: 'file',
+      label: 'File',
+      actions: [
+        { label: 'Open README.md', onSelect: () => openFile(README_PATH, true) },
+        { label: 'Open about/me.ts', onSelect: () => openFile('about/me.ts', true) },
+        { label: 'View CV', onSelect: () => setLaunchTarget(CV_PATH) },
+      ],
+    },
+    {
+      id: 'edit',
+      label: 'Edit',
+      actions: [{ label: 'Files are read-only in this workspace', disabled: true }],
+    },
+    {
+      id: 'selection',
+      label: 'Selection',
+      actions: [{ label: 'No selection actions available', disabled: true }],
+    },
+    {
+      id: 'view',
+      label: 'View',
+      actions: [
+        { label: sidebarOpen ? 'Hide Sidebar (Ctrl+B)' : 'Show Sidebar (Ctrl+B)', onSelect: toggleSidebar },
+        { label: panelOpen ? 'Hide Panel (Ctrl+`)' : 'Show Panel (Ctrl+`)', onSelect: togglePanel },
+      ],
+    },
+    {
+      id: 'go',
+      label: 'Go',
+      actions: [
+        { label: 'Go to README.md', onSelect: () => openFile(README_PATH, true) },
+        { label: 'Go to About', onSelect: () => openFile('about/me.ts', true) },
+        { label: 'Go to Skills', onSelect: () => openFile('skills/technical.ts', true) },
+        { label: 'Go to Contact', onSelect: () => openFile('contact/contact.ts', true) },
+      ],
+    },
+    {
+      id: 'run',
+      label: 'Run',
+      actions: [
+        ...runnableProjects().map((project) => ({
+          label: `Run ${project.name}`,
+          onSelect: () => runProject(project.name, project.technologies),
+        })),
+        { label: 'Launch CV', onSelect: () => setLaunchTarget(CV_PATH) },
+      ],
+    },
+    {
+      id: 'terminal',
+      label: 'Terminal',
+      actions: [
+        { label: 'Focus Terminal', onSelect: showTerminal },
+        { label: 'Clear Terminal', onSelect: terminal.clear },
+      ],
+    },
+    {
+      id: 'help',
+      label: 'Help',
+      actions: [
+        ...(visible(profile.github) ? [{ label: 'View on GitHub', href: profile.github }] : []),
+        ...(visible(profile.linkedin) ? [{ label: 'View on LinkedIn', href: profile.linkedin }] : []),
+      ],
+    },
+  ]
 
   return (
     <div
@@ -71,6 +153,7 @@ export default function Workspace() {
       <WindowChrome
         sidebarOpen={sidebarOpen}
         panelOpen={panelOpen}
+        menus={menus}
         onToggleSidebar={toggleSidebar}
         onTogglePanel={togglePanel}
         onLaunchCV={() => setLaunchTarget(CV_PATH)}
@@ -87,8 +170,9 @@ export default function Workspace() {
               activePath={activePath}
               onOpenFile={openFile}
               extensions={extensions}
+              terminal={terminal}
               onLaunchCV={() => setLaunchTarget(CV_PATH)}
-              onOpenTerminal={openTerminal}
+              onRunProgram={showTerminal}
             />
             <Sash orientation="vertical" label="Resize sidebar" handlers={sidebar.handlers} />
           </>
@@ -107,7 +191,14 @@ export default function Workspace() {
           {panelOpen && (
             <>
               <Sash orientation="horizontal" label="Resize panel" handlers={panel.handlers} />
-              <Panel height={panel.size} terminal={terminal} onLaunch={setLaunchTarget} onClose={() => setPanelOpen(false)} />
+              <Panel
+                height={panel.size}
+                active={panelTab}
+                onActiveChange={setPanelTab}
+                terminal={terminal}
+                onLaunch={setLaunchTarget}
+                onClose={() => setPanelOpen(false)}
+              />
             </>
           )}
         </div>
