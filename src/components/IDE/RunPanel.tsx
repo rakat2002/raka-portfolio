@@ -1,6 +1,6 @@
 import { FileText, Play } from 'lucide-react'
 import { CV_PATH } from '../../lib/browser'
-import { getRunConfig, runnableProjects } from '../../lib/runConfigs'
+import { getRunConfig, openExternal, runnableProjects } from '../../lib/runConfigs'
 import type { TerminalState } from '../../hooks/useTerminal'
 
 interface RunPanelProps {
@@ -15,7 +15,9 @@ export default function RunPanel({ terminal, onLaunchCV, onRunProgram }: RunPane
   const runProject = (name: string, technologies: string[]) => {
     const config = getRunConfig(name, technologies)
     onRunProgram()
-    terminal.runProgram(config.command, config.lines)
+    terminal.runProgram(config.command, config.lines, () => {
+      if (config.externalUrl) openExternal(config.externalUrl)
+    })
   }
 
   return (
@@ -37,20 +39,25 @@ export default function RunPanel({ terminal, onLaunchCV, onRunProgram }: RunPane
         <div>
           <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-ink-faint">Run Project</p>
           <div className="space-y-1.5">
-            {projects.map((project) => (
-              <button key={project.name} type="button"
-                onClick={() => runProject(project.name, project.technologies)}
-                className="flex w-full items-center gap-2 rounded border border-line bg-editor px-3 py-2 text-left text-ink transition-colors hover:bg-highlight"
-              >
-                <Play size={14} className="text-accent" aria-hidden="true" />
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate font-medium">{project.name}</span>
-                  <span className="block truncate text-[11px] text-ink-faint">
-                    {project.technologies.slice(0, 3).join(' · ') || 'Run in terminal'}
+            {projects.map((project) => {
+              const config = getRunConfig(project.name, project.technologies)
+              return (
+                <button key={project.name} type="button"
+                  onClick={() => runProject(project.name, project.technologies)}
+                  className="flex w-full items-center gap-2 rounded border border-line bg-editor px-3 py-2 text-left text-ink transition-colors hover:bg-highlight"
+                >
+                  <Play size={14} className="text-accent" aria-hidden="true" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-medium">{project.name}</span>
+                    <span className="block truncate text-[11px] text-ink-faint">
+                      {config.externalUrl
+                        ? 'Opens in Google Colab'
+                        : project.technologies.slice(0, 3).join(' · ') || 'Run in terminal'}
+                    </span>
                   </span>
-                </span>
-              </button>
-            ))}
+                </button>
+              )
+            })}
           </div>
         </div>
       )}

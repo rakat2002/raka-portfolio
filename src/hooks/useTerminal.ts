@@ -31,13 +31,14 @@ export function useTerminal() {
     timers.current.length = 0
   }
 
-  const streamOutput = (command: string, lines: OutputLine[]) => {
+  const streamOutput = (command: string, lines: OutputLine[], onComplete?: () => void) => {
     const echo: TerminalEntry = { id: newId(), kind: 'input', command }
     const streamed = !prefersReducedMotion() && lines.some((item) => (item.delay ?? 0) > 0)
 
     if (!streamed) {
       const output: TerminalEntry[] = lines.length > 0 ? [{ id: newId(), kind: 'output', lines }] : []
       setEntries((current) => [...current, echo, ...output])
+      onComplete?.()
       return
     }
 
@@ -58,7 +59,10 @@ export function useTerminal() {
               : entry,
           ),
         )
-        if (isLast) setBusy(false)
+        if (isLast) {
+          setBusy(false)
+          onComplete?.()
+        }
       }, elapsed)
 
       timers.current.push(timer)
@@ -89,11 +93,11 @@ export function useTerminal() {
     streamOutput(command, result.lines)
   }
 
-  const runProgram = (command: string, lines: OutputLine[]) => {
+  const runProgram = (command: string, lines: OutputLine[], onComplete?: () => void) => {
     if (busy) return
     setHistory((current) => [...current, command])
     setPosition(history.length + 1)
-    streamOutput(command, lines)
+    streamOutput(command, lines, onComplete)
   }
 
   const historyUp = () => {
