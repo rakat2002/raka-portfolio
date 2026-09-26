@@ -1,3 +1,4 @@
+import { getRunConfig, openExternal, runnableProjects } from '../lib/runConfigs'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ActivityBar from '../components/IDE/ActivityBar'
@@ -21,7 +22,7 @@ import { useTerminal } from '../hooks/useTerminal'
 import { CV_PATH, prefersReducedMotion } from '../lib/browser'
 import { EXTENSIONS } from '../lib/extensions'
 import { visible } from '../lib/placeholders'
-import { getRunConfig, runnableProjects } from '../lib/runConfigs'
+
 
 const LAUNCH_DELAY_MS = 650
 
@@ -72,10 +73,12 @@ export default function Workspace() {
     setPanelTab('Terminal')
   }
 
-  const runProject = (name: string, technologies: string[]) => {
+    const runProject = (name: string, technologies: string[]) => {
     const config = getRunConfig(name, technologies)
     showTerminal()
-    terminal.runProgram(config.command, config.lines)
+    terminal.runProgram(config.command, config.lines, () => {
+      if (config.externalUrl) openExternal(config.externalUrl)
+    })
   }
 
   const menus: MenuDef[] = [
