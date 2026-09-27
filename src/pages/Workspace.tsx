@@ -1,4 +1,3 @@
-import { getRunConfig, openExternal, runnableProjects } from '../lib/runConfigs'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ActivityBar from '../components/IDE/ActivityBar'
@@ -16,18 +15,20 @@ import { README_PATH, filesByPath } from '../data/portfolioFiles'
 import { useCursors } from '../hooks/useCursors'
 import { useEditorTabs } from '../hooks/useEditorTabs'
 import { useExtensions } from '../hooks/useExtensions'
+import { useIsMobile } from '../hooks/useIsMobile'
 import { useKeybindings } from '../hooks/useKeybindings'
 import { useResizable } from '../hooks/useResizable'
 import { useTerminal } from '../hooks/useTerminal'
 import { CV_PATH, prefersReducedMotion } from '../lib/browser'
 import { EXTENSIONS } from '../lib/extensions'
 import { visible } from '../lib/placeholders'
-
+import { getRunConfig, openExternal, runnableProjects } from '../lib/runConfigs'
 
 const LAUNCH_DELAY_MS = 650
 
 export default function Workspace() {
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
   const [activity, setActivity] = useState<ActivityId>('explorer')
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [panelOpen, setPanelOpen] = useState(true)
@@ -49,6 +50,11 @@ export default function Workspace() {
 
   useKeybindings({ b: toggleSidebar, '`': togglePanel })
 
+  // On a phone, don't cover the whole screen with the drawer by default.
+  useEffect(() => {
+    if (isMobile) setSidebarOpen(false)
+  }, [isMobile])
+
   useEffect(() => {
     if (!launchTarget) return
     const timer = window.setTimeout(
@@ -67,13 +73,18 @@ export default function Workspace() {
     }
   }
 
-  // Opens the panel and switches it to the Terminal tab, used when a project is run.
+  // Opening a file from the mobile drawer should close the drawer so the file is visible.
+  const handleOpenFile = (path: string, pinned: boolean) => {
+    openFile(path, pinned)
+    if (isMobile) setSidebarOpen(false)
+  }
+
   const showTerminal = () => {
     setPanelOpen(true)
     setPanelTab('Terminal')
   }
 
-    const runProject = (name: string, technologies: string[]) => {
+  const runProject = (name: string, technologies: string[]) => {
     const config = getRunConfig(name, technologies)
     showTerminal()
     terminal.runProgram(config.command, config.lines, () => {
@@ -86,8 +97,8 @@ export default function Workspace() {
       id: 'file',
       label: 'File',
       actions: [
-        { label: 'Open README.md', onSelect: () => openFile(README_PATH, true) },
-        { label: 'Open about/me.ts', onSelect: () => openFile('about/me.ts', true) },
+        { label: 'Open README.md', onSelect: () => handleOpenFile(README_PATH, true) },
+        { label: 'Open about/me.ts', onSelect: () => handleOpenFile('about/me.ts', true) },
         { label: 'View CV', onSelect: () => setLaunchTarget(CV_PATH) },
       ],
     },
@@ -113,10 +124,10 @@ export default function Workspace() {
       id: 'go',
       label: 'Go',
       actions: [
-        { label: 'Go to README.md', onSelect: () => openFile(README_PATH, true) },
-        { label: 'Go to About', onSelect: () => openFile('about/me.ts', true) },
-        { label: 'Go to Skills', onSelect: () => openFile('skills/technical.ts', true) },
-        { label: 'Go to Contact', onSelect: () => openFile('contact/contact.ts', true) },
+        { label: 'Go to README.md', onSelect: () => handleOpenFile(README_PATH, true) },
+        { label: 'Go to About', onSelect: () => handleOpenFile('about/me.ts', true) },
+        { label: 'Go to Skills', onSelect: () => handleOpenFile('skills/technical.ts', true) },
+        { label: 'Go to Contact', onSelect: () => handleOpenFile('contact/contact.ts', true) },
       ],
     },
     {
@@ -162,22 +173,32 @@ export default function Workspace() {
         onLaunchCV={() => setLaunchTarget(CV_PATH)}
       />
 
-      <div className="flex min-h-0 flex-1">
+      <div className="relative flex min-h-0 flex-1">
         <ActivityBar active={activity} sidebarOpen={sidebarOpen} onSelect={selectActivity} />
 
         {sidebarOpen && (
           <>
+            {isMobile && (
+              <div
+                aria-hidden="true"
+                onClick={() => setSidebarOpen(false)}
+                className="fixed inset-0 z-20 bg-black/50"
+              />
+            )}
             <SideBar
               activity={activity}
               width={sidebar.size}
+              isMobile={isMobile}
               activePath={activePath}
-              onOpenFile={openFile}
+              onOpenFile={handleOpenFile}
               extensions={extensions}
               terminal={terminal}
               onLaunchCV={() => setLaunchTarget(CV_PATH)}
               onRunProgram={showTerminal}
             />
-            <Sash orientation="vertical" label="Resize sidebar" handlers={sidebar.handlers} />
+            {!isMobile && (
+              <Sash orientation="vertical" label="Resize sidebar" handlers={sidebar.handlers} />
+            )}
           </>
         )}
 

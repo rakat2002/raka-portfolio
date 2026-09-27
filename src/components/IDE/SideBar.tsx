@@ -10,6 +10,7 @@ import SourceControlPanel from './SourceControlPanel'
 interface SideBarProps {
   activity: ActivityId
   width: number
+  isMobile: boolean
   activePath: string | null
   onOpenFile: (path: string, pinned: boolean) => void
   extensions: ReturnType<typeof useExtensions>
@@ -21,6 +22,7 @@ interface SideBarProps {
 export default function SideBar({
   activity,
   width,
+  isMobile,
   activePath,
   onOpenFile,
   extensions,
@@ -31,7 +33,15 @@ export default function SideBar({
   const title = ACTIVITIES.find((item) => item.id === activity)?.label ?? ''
 
   return (
-    <aside aria-label={title} style={{ width }} className="flex shrink-0 flex-col bg-sidebar">
+    <aside
+      aria-label={title}
+      style={!isMobile ? { width } : undefined}
+      className={
+        isMobile
+          ? 'fixed left-0 top-9 bottom-6 z-30 flex w-[82vw] max-w-xs flex-col bg-sidebar shadow-2xl shadow-black/50'
+          : 'flex shrink-0 flex-col bg-sidebar'
+      }
+    >
       <h2 className="flex h-9 shrink-0 items-center px-5 text-[13px] font-medium text-ink">
         {title}
       </h2>
