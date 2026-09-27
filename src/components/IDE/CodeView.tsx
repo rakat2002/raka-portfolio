@@ -113,7 +113,7 @@ export default function CodeView({ file, cursor, onCursorChange }: CodeViewProps
             >
               <span
                 aria-hidden="true"
-                className={`sticky left-0 w-14 shrink-0 select-none pr-4 text-right ${
+                className={`sticky left-0 z-10 w-14 shrink-0 select-none pr-4 text-right ${
                   current ? 'bg-current-line text-ink' : 'bg-editor text-gutter'
                 }`}
               >
