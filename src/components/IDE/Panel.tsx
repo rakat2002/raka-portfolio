@@ -25,13 +25,15 @@ interface PanelProps {
 export default function Panel({ height, active, onActiveChange, terminal, onLaunch, onClose }: PanelProps) {
   return (
     <section aria-label="Panel" style={{ height }} className="flex shrink-0 flex-col bg-terminal">
-      <div className="flex h-9 shrink-0 items-center justify-between px-2">
-        <div role="tablist" aria-label="Panel views" className="flex h-full items-center gap-1">
+      <div className="flex h-9 shrink-0 items-center gap-1 px-2">
+        <div role="tablist" aria-label="Panel views"
+          className="flex h-full min-w-0 flex-1 items-center gap-1 overflow-x-auto"
+        >
           {PANEL_TABS.map((tab) => (
             <button key={tab} type="button" role="tab"
               aria-selected={active === tab}
               onClick={() => onActiveChange(tab)}
-              className={`rounded px-3 py-1 text-[13px] transition-colors ${
+              className={`shrink-0 rounded px-3 py-1 text-[13px] transition-colors ${
                 active === tab ? 'bg-selection text-ink' : 'text-ink-faint hover:text-ink-dim'
               }`}
             >
@@ -39,7 +41,7 @@ export default function Panel({ height, active, onActiveChange, terminal, onLaun
             </button>
           ))}
         </div>
-        <IconButton label="Close Panel" onClick={onClose}>
+        <IconButton label="Close Panel" onClick={onClose} className="shrink-0">
           <X size={16} />
         </IconButton>
       </div>

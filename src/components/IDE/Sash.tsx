@@ -19,14 +19,21 @@ export default function Sash({ orientation, label, handlers }: SashProps) {
         vertical ? 'w-px cursor-col-resize' : 'h-px cursor-row-resize'
       }`}
     >
-      {/* invisible wider hit area, so the 1px line is easy to grab */}
+      {/* Invisible wider hit area, so the thin line is easy to grab. Taller on touch/horizontal. */}
       <span
         className={
           vertical
             ? 'absolute inset-y-0 -left-1 -right-1'
-            : 'absolute inset-x-0 -bottom-1 -top-1'
+            : 'absolute inset-x-0 -bottom-2 -top-2 md:-bottom-1 md:-top-1'
         }
       />
+      {/* Visible grab handle, phone-only, for the panel's horizontal resize. */}
+      {!vertical && (
+        <span
+          aria-hidden="true"
+          className="absolute left-1/2 top-1/2 h-1 w-10 -translate-x-1/2 -translate-y-1/2 rounded-full bg-edge md:hidden"
+        />
+      )}
     </div>
   )
 }
