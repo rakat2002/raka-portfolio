@@ -50,7 +50,6 @@ export default function Workspace() {
 
   useKeybindings({ b: toggleSidebar, '`': togglePanel })
 
-  // On a phone, don't cover the whole screen with the drawer by default.
   useEffect(() => {
     if (isMobile) setSidebarOpen(false)
   }, [isMobile])
@@ -73,7 +72,6 @@ export default function Workspace() {
     }
   }
 
-  // Opening a file from the mobile drawer should close the drawer so the file is visible.
   const handleOpenFile = (path: string, pinned: boolean) => {
     openFile(path, pinned)
     if (isMobile) setSidebarOpen(false)
@@ -88,7 +86,7 @@ export default function Workspace() {
     const config = getRunConfig(name, technologies)
     showTerminal()
     terminal.runProgram(config.command, config.lines, () => {
-      if (config.externalUrl) openExternal(config.externalUrl)
+      if (config.externalUrl) openExternal(config.externalUrl, config.loadingLabel ?? config.projectName)
     })
   }
 
@@ -99,7 +97,7 @@ export default function Workspace() {
       actions: [
         { label: 'Open README.md', onSelect: () => handleOpenFile(README_PATH, true) },
         { label: 'Open about/me.ts', onSelect: () => handleOpenFile('about/me.ts', true) },
-        { label: 'View CV', onSelect: () => setLaunchTarget(CV_PATH) },
+        { label: 'Resume', onSelect: () => setLaunchTarget(CV_PATH) },
       ],
     },
     {

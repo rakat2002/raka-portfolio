@@ -16,7 +16,7 @@ export default function RunPanel({ terminal, onLaunchCV, onRunProgram }: RunPane
     const config = getRunConfig(name, technologies)
     onRunProgram()
     terminal.runProgram(config.command, config.lines, () => {
-      if (config.externalUrl) openExternal(config.externalUrl)
+      if (config.externalUrl) openExternal(config.externalUrl, config.loadingLabel ?? config.projectName)
     })
   }
 
