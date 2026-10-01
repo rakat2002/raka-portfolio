@@ -7,7 +7,6 @@ export interface RunConfig {
   command: string
   lines: OutputLine[]
   externalUrl?: string
-  /** Shown on the interstitial tab while the external page (e.g. Colab) is still loading. */
   loadingLabel?: string
 }
 
@@ -57,9 +56,9 @@ export function getRunConfig(projectName: string, technologies: string[]): RunCo
 
 export const runnableProjects = () => profile.projects.filter((p) => !isPlaceholder(p.name))
 
-// Opens a new tab immediately (avoids popup blockers, since this runs inside a click
-// handler), fills it with a small themed loading screen, then hands off to the real URL
-// a moment later, so the visitor never sees a blank white tab while Colab boots up.
+// Opens a new tab immediately (must happen inside the original click, or popup blockers
+// step in) with a small themed screen that shows a real link to the notebook. The visitor
+// clicks it when ready, so Colab's own loading state is expected, not a mystery blank gap.
 export function openExternal(url: string, label: string) {
   const win = window.open('', '_blank')
   if (!win) {
@@ -68,32 +67,36 @@ export function openExternal(url: string, label: string) {
   }
 
   win.document.title = label
-    win.document.write(`<!doctype html>
+  win.document.write(`<!doctype html>
 <html>
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
   html, body { height: 100%; margin: 0; background: #1d0116; }
-  body { display: flex; align-items: center; justify-content: center; font-family: ui-sans-serif, system-ui, sans-serif; }
-  .wrap { text-align: center; }
-  .spinner { width: 28px; height: 28px; margin: 0 auto 16px; border-radius: 50%; border: 3px solid #52003e; border-top-color: #ff00aa; animation: spin 0.8s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  p { color: #cc7db2; font-size: 14px; margin: 0 0 4px; }
-  p.hint { color: #8a6d7e; font-size: 12px; }
+  body {
+    display: flex; align-items: center; justify-content: center;
+    font-family: ui-sans-serif, system-ui, sans-serif;
+  }
+  .wrap { text-align: center; max-width: 320px; padding: 0 20px; }
+  p.label { color: #cc7db2; font-size: 14px; margin: 0 0 18px; }
+  a.open {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: #ff00aa; color: #fff; text-decoration: none;
+    font-size: 14px; font-weight: 600; padding: 10px 18px; border-radius: 6px;
+    transition: opacity 0.15s ease;
+  }
+  a.open:hover { opacity: 0.85; }
+  p.hint { color: #8a6d7e; font-size: 12px; margin: 14px 0 0; }
 </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="spinner"></div>
-    <p>${label}</p>
-    <p class="hint">Opening Google Colab, this can take a few seconds...</p>
+    <p class="label">${label}</p>
+    <a class="open" href="${url}">Open in Google Colab →</a>
+    <p class="hint">Colab may take a few seconds to load once opened.</p>
   </div>
 </body>
 </html>`)
   win.document.close()
-
-  window.setTimeout(() => {
-    win.location.href = url
-  }, 3000)
 }
