@@ -24,10 +24,8 @@ function OutputRow({ item, onLaunch }: OutputRowProps) {
     <div className={`whitespace-pre-wrap break-words ${TONE_CLASS[item.tone ?? 'plain']}`}>
       {item.text || '\u00a0'}
       {link && (
-        <a
-          href={link.href}
+        <a href={link.href}
           onClick={(event) => {
-            // Without a launcher, or for Ctrl/Cmd-clicks, the browser follows the link itself.
             if (!onLaunch || !isPlainLeftClick(event)) return
             event.preventDefault()
             event.stopPropagation()
@@ -52,32 +50,42 @@ export default function Terminal({ terminal, onLaunch }: TerminalProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // The menu opens only when the person types, never when history fills the line.
   const [open, setOpen] = useState(false)
-  const [active, setActive] = useState(-1) // -1 means nothing is highlighted yet
+  const [active, setActive] = useState(-1)
 
   const suggestions = open ? getSuggestions(input) : []
   const listVisible = suggestions.length > 0
   const typedLength = input.trimStart().length
 
-  // Always show the newest output, and keep the menu in view when it opens.
   useEffect(() => {
     const element = scrollRef.current
     if (element) element.scrollTop = element.scrollHeight
   }, [entries, suggestions.length])
 
-  // Keep the highlighted row visible when the menu is longer than its box.
   useEffect(() => {
     if (active < 0) return
     document.getElementById(`terminal-suggestion-${active}`)?.scrollIntoView({ block: 'nearest' })
   }, [active])
 
-  // When a command finishes printing, put the cursor back on the prompt.
   const wasBusy = useRef(false)
   useEffect(() => {
     if (wasBusy.current && !busy) inputRef.current?.focus()
     wasBusy.current = busy
   }, [busy])
+
+  // On phones, when the on-screen keyboard opens it shrinks the visible viewport. This
+  // scrolls the input back into view once that happens, like a messaging app's input box.
+  useEffect(() => {
+    const viewport = window.visualViewport
+    if (!viewport) return
+    const onResize = () => {
+      if (document.activeElement === inputRef.current) {
+        inputRef.current?.scrollIntoView({ block: 'end', behavior: 'smooth' })
+      }
+    }
+    viewport.addEventListener('resize', onResize)
+    return () => viewport.removeEventListener('resize', onResize)
+  }, [])
 
   const closeSuggestions = () => {
     setOpen(false)
@@ -138,7 +146,6 @@ export default function Terminal({ terminal, onLaunch }: TerminalProps) {
     }
   }
 
-  // Clicking anywhere focuses the input, unless the person is selecting text.
   const focusInput = () => {
     if (window.getSelection()?.toString()) return
     inputRef.current?.focus()
@@ -167,7 +174,6 @@ export default function Terminal({ terminal, onLaunch }: TerminalProps) {
         )}
       </div>
 
-      {/* While a command is still printing, the prompt is hidden, like in a real terminal. */}
       <div className={`flex items-center gap-2 ${busy ? 'hidden' : ''}`}>
         <Prompt />
         <input
@@ -180,6 +186,13 @@ export default function Terminal({ terminal, onLaunch }: TerminalProps) {
           }}
           onKeyDown={handleKeyDown}
           onBlur={closeSuggestions}
+          onFocus={() => {
+            // Fallback for browsers without visualViewport: wait for the keyboard
+            // animation, then scroll.
+            window.setTimeout(() => {
+              inputRef.current?.scrollIntoView({ block: 'end', behavior: 'smooth' })
+            }, 300)
+          }}
           role="combobox"
           aria-label="Terminal input"
           aria-autocomplete="list"

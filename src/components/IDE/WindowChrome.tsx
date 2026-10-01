@@ -36,8 +36,8 @@ export default function WindowChrome({
 
       <div className="flex items-center justify-end gap-1">
         <a href={CV_PATH}
-          aria-label="View CV"
-          title="View CV"
+          aria-label="Resume"
+          title="Resume"
           onClick={(event) => {
             if (!isPlainLeftClick(event)) return
             event.preventDefault()
@@ -46,7 +46,7 @@ export default function WindowChrome({
           className="mr-1 flex h-7 items-center gap-1.5 rounded px-2 transition-colors hover:bg-highlight"
         >
           <FileText size={14} aria-hidden="true" />
-          <span className="hidden sm:inline">View CV</span>
+          <span className="hidden sm:inline">Resume</span>
         </a>
         <IconButton label="Toggle Primary Sidebar (Ctrl+B)" aria-pressed={sidebarOpen} onClick={onToggleSidebar}>
           <PanelLeft size={16} />
